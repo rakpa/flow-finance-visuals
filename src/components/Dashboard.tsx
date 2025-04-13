@@ -1,11 +1,12 @@
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { 
   TrendingUp, 
   TrendingDown, 
   DollarSign, 
   BarChart4,
-  ArrowRight
+  ArrowRight,
+  Calendar
 } from 'lucide-react';
 import { Transaction, Category } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import BalanceChart from './charts/BalanceChart';
 import ExpenseChart from './charts/ExpenseChart';
 import TransactionList from './TransactionList';
+import { DateFilterOption, getDateRangeFromFilter, isDateInRange } from '@/lib/date-utils';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 interface DashboardProps {
   transactions: Transaction[];
@@ -22,25 +33,22 @@ interface DashboardProps {
 }
 
 const Dashboard = ({ transactions, categories, onDeleteTransaction }: DashboardProps) => {
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('this-month');
+  
   // Calculate summary data
   const summary = useMemo(() => {
     let totalIncome = 0;
     let totalExpenses = 0;
     
-    // Current month transactions
-    const currentDate = new Date();
-    const currentMonth = currentDate.getMonth();
-    const currentYear = currentDate.getFullYear();
+    // Get date range for filtering transactions
+    const dateRange = getDateRangeFromFilter(dateFilter);
     
-    const currentMonthTransactions = transactions.filter(transaction => {
-      const transactionDate = new Date(transaction.date);
-      return (
-        transactionDate.getMonth() === currentMonth &&
-        transactionDate.getFullYear() === currentYear
-      );
+    // Filter transactions based on date range
+    const filteredTransactions = transactions.filter(transaction => {
+      return isDateInRange(transaction.date, dateRange);
     });
     
-    for (const transaction of currentMonthTransactions) {
+    for (const transaction of filteredTransactions) {
       if (transaction.type === 'income') {
         totalIncome += transaction.amount;
       } else {
@@ -56,7 +64,7 @@ const Dashboard = ({ transactions, categories, onDeleteTransaction }: DashboardP
       balance,
       trend: balance >= 0 ? 'positive' : 'negative',
     };
-  }, [transactions]);
+  }, [transactions, dateFilter]);
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -69,13 +77,56 @@ const Dashboard = ({ transactions, categories, onDeleteTransaction }: DashboardP
 
   // Get recent transactions
   const recentTransactions = useMemo(() => {
-    return [...transactions]
+    // Get date range for filtering transactions
+    const dateRange = getDateRangeFromFilter(dateFilter);
+    
+    // Filter transactions based on date range and sort by date
+    return transactions
+      .filter(transaction => isDateInRange(transaction.date, dateRange))
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5);
-  }, [transactions]);
+  }, [transactions, dateFilter]);
+
+  // Get date filter label
+  const getDateFilterLabel = (filter: DateFilterOption): string => {
+    const labels: Record<DateFilterOption, string> = {
+      'all': 'All Time',
+      'today': 'Today',
+      'yesterday': 'Yesterday',
+      'this-week': 'This Week',
+      'this-month': 'This Month',
+      'last-month': 'Last Month',
+      'this-year': 'This Year'
+    };
+    return labels[filter];
+  };
 
   return (
     <div className="space-y-8">
+      <div className="flex justify-end mb-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>{getDateFilterLabel(dateFilter)}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48" align="end">
+            <DropdownMenuLabel>Select period</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={dateFilter} onValueChange={(value) => setDateFilter(value as DateFilterOption)}>
+              <DropdownMenuRadioItem value="today">Today</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="yesterday">Yesterday</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="this-week">This Week</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="this-month">This Month</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="last-month">Last Month</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="this-year">This Year</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="all">All Time</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {/* Balance Card */}
         <Card>
@@ -102,7 +153,7 @@ const Dashboard = ({ transactions, categories, onDeleteTransaction }: DashboardP
         {/* Income Card */}
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Monthly Income</CardDescription>
+            <CardDescription>{getDateFilterLabel(dateFilter)} Income</CardDescription>
             <CardTitle className="text-3xl text-finance-income">
               {formatCurrency(summary.income)}
             </CardTitle>
@@ -118,7 +169,7 @@ const Dashboard = ({ transactions, categories, onDeleteTransaction }: DashboardP
         {/* Expense Card */}
         <Card>
           <CardHeader className="pb-2">
-            <CardDescription>Monthly Expenses</CardDescription>
+            <CardDescription>{getDateFilterLabel(dateFilter)} Expenses</CardDescription>
             <CardTitle className="text-3xl text-finance-expense">
               {formatCurrency(summary.expenses)}
             </CardTitle>
@@ -173,7 +224,7 @@ const Dashboard = ({ transactions, categories, onDeleteTransaction }: DashboardP
             <CardTitle>Recent Transactions</CardTitle>
             <CardDescription>Your latest financial activities</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => document.getElementById('transactions')?.scrollIntoView({ behavior: 'smooth' })}>
+          <Button variant="outline" size="sm" onClick={() => window.location.href = '/transactions'}>
             View All <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </CardHeader>

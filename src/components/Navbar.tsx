@@ -1,5 +1,6 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   BarChart, 
   Home, 
@@ -15,18 +16,19 @@ interface NavbarProps {
 }
 
 const Navbar = ({ closeSidebar }: NavbarProps) => {
-  const [currentSection, setCurrentSection] = useState('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [currentPath, setCurrentPath] = useState(location.pathname);
 
-  const handleNavigate = (section: string) => {
-    setCurrentSection(section);
+  // Update current path when location changes
+  useEffect(() => {
+    setCurrentPath(location.pathname);
+  }, [location]);
+
+  const handleNavigate = (path: string) => {
+    navigate(path);
     if (closeSidebar) {
       closeSidebar();
-    }
-
-    // Scroll to section
-    const element = document.getElementById(section);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth' });
     }
   };
 
@@ -37,32 +39,24 @@ const Navbar = ({ closeSidebar }: NavbarProps) => {
           <NavItem 
             icon={Home} 
             text="Dashboard" 
-            active={currentSection === 'dashboard'} 
-            onClick={() => handleNavigate('dashboard')}
+            active={currentPath === '/'} 
+            onClick={() => handleNavigate('/')}
           />
         </li>
         <li>
           <NavItem 
             icon={Plus} 
-            text="Add Transaction" 
-            active={currentSection === 'add-transaction'} 
-            onClick={() => handleNavigate('add-transaction')}
+            text="Transactions" 
+            active={currentPath === '/transactions'} 
+            onClick={() => handleNavigate('/transactions')}
           />
         </li>
         <li>
           <NavItem 
             icon={Tag} 
             text="Categories" 
-            active={currentSection === 'categories'} 
-            onClick={() => handleNavigate('categories')}
-          />
-        </li>
-        <li>
-          <NavItem 
-            icon={BarChart} 
-            text="Reports" 
-            active={currentSection === 'reports'} 
-            onClick={() => handleNavigate('reports')}
+            active={currentPath === '/categories'} 
+            onClick={() => handleNavigate('/categories')}
           />
         </li>
       </ul>
