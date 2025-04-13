@@ -1,29 +1,44 @@
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Transaction } from '@/types';
-import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay } from 'date-fns';
+import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval } from 'date-fns';
+import { Button } from '@/components/ui/button';
+import { Calendar } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { DateFilterOption, getDateRangeFromFilter } from '@/lib/date-utils';
 
 interface BalanceChartProps {
   transactions: Transaction[];
 }
 
 const BalanceChart: React.FC<BalanceChartProps> = ({ transactions }) => {
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('this-month');
+
   const chartData = useMemo(() => {
     if (!transactions.length) return [];
 
-    // Get date range (current month)
-    const today = new Date();
-    const start = startOfMonth(today);
-    const end = endOfMonth(today);
+    const dateRange = getDateRangeFromFilter(dateFilter);
+    if (!dateRange) return [];
     
-    // Create array of all days in the month
+    // Get date range for the chart
+    const { start, end } = dateRange;
+    
+    // Create array of all days in the range
     const days = eachDayOfInterval({ start, end });
     
     // Initialize data with running balance
     let runningBalance = 0;
     
-    // Calculate initial balance (from before this month)
+    // Calculate initial balance (from before the range start)
     const previousTransactions = transactions.filter(
       t => parseISO(t.date) < start
     );
@@ -64,50 +79,92 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ transactions }) => {
         balance: Math.max(0, runningBalance) // Ensure balance doesn't go negative for visual purposes
       };
     });
-  }, [transactions]);
+  }, [transactions, dateFilter]);
 
   const formatCurrency = (value: number) => {
     return `$${value.toFixed(2)}`;
   };
 
+  const getDateFilterLabel = (filter: DateFilterOption): string => {
+    const labels: Record<DateFilterOption, string> = {
+      'all': 'All Time',
+      'today': 'Today',
+      'yesterday': 'Yesterday',
+      'this-week': 'This Week',
+      'this-month': 'This Month',
+      'last-month': 'Last Month',
+      'this-year': 'This Year'
+    };
+    return labels[filter];
+  };
+
   return (
-    <div className="h-[300px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart
-          data={chartData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-        >
-          <defs>
-            <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-              <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
-            </linearGradient>
-          </defs>
-          <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-          <XAxis 
-            dataKey="date" 
-            tick={{ fontSize: 10 }} 
-            tickFormatter={(value) => value.split(' ')[1]}
-          />
-          <YAxis 
-            tick={{ fontSize: 10 }} 
-            tickFormatter={(value) => `$${value}`} 
-          />
-          <Tooltip 
-            formatter={(value: number) => [`$${value.toFixed(2)}`, '']} 
-            labelFormatter={(label) => `Date: ${label}`}
-          />
-          <Legend />
-          <Area 
-            type="monotone" 
-            dataKey="balance" 
-            stroke="#3b82f6" 
-            fillOpacity={1} 
-            fill="url(#colorBalance)" 
-            name="Balance"
-          />
-        </AreaChart>
-      </ResponsiveContainer>
+    <div className="w-full">
+      <div className="flex justify-end mb-4">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm" className="flex items-center gap-1">
+              <Calendar className="h-4 w-4" />
+              <span>{getDateFilterLabel(dateFilter)}</span>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-48" align="end">
+            <DropdownMenuLabel>Select period</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuRadioGroup value={dateFilter} onValueChange={(value) => setDateFilter(value as DateFilterOption)}>
+              <DropdownMenuRadioItem value="this-week">This Week</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="this-month">This Month</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="last-month">Last Month</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="this-year">This Year</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <div className="h-[300px] w-full">
+        {chartData.length === 0 ? (
+          <div className="h-full w-full flex items-center justify-center">
+            <p className="text-muted-foreground">No data to display for the selected period</p>
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart
+              data={chartData}
+              margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+              <XAxis 
+                dataKey="date" 
+                tick={{ fontSize: 10 }} 
+                tickFormatter={(value) => value.split(' ')[1]}
+              />
+              <YAxis 
+                tick={{ fontSize: 10 }} 
+                tickFormatter={(value) => `$${value}`} 
+              />
+              <Tooltip 
+                formatter={(value: number) => [`$${value.toFixed(2)}`, '']} 
+                labelFormatter={(label) => `Date: ${label}`}
+              />
+              <Legend />
+              <Area 
+                type="monotone" 
+                dataKey="balance" 
+                stroke="#3b82f6" 
+                fillOpacity={1} 
+                fill="url(#colorBalance)" 
+                name="Balance"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
+      </div>
     </div>
   );
 };

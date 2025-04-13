@@ -1,11 +1,21 @@
 
 import { useMemo, useState } from 'react';
-import { ArrowUpRight, ArrowDownRight, Search, Calendar, Trash2 } from 'lucide-react';
+import { ArrowUpRight, ArrowDownRight, Search, Calendar, Trash2, FilterIcon } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { Transaction, Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
+import { DateFilterOption, getDateRangeFromFilter, isDateInRange } from '@/lib/date-utils';
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -19,13 +29,21 @@ const TransactionList = ({
   onDeleteTransaction,
 }: TransactionListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filter, setFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
+  const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
 
   const filteredTransactions = useMemo(() => {
+    const dateRange = getDateRangeFromFilter(dateFilter);
+    
     return transactions
       .filter((transaction) => {
         // Type filter
-        if (filter !== 'all' && transaction.type !== filter) {
+        if (typeFilter !== 'all' && transaction.type !== typeFilter) {
+          return false;
+        }
+        
+        // Date filter
+        if (!isDateInRange(transaction.date, dateRange)) {
           return false;
         }
         
@@ -43,10 +61,23 @@ const TransactionList = ({
         return true;
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [transactions, categories, searchTerm, filter]);
+  }, [transactions, categories, searchTerm, typeFilter, dateFilter]);
 
   const getCategoryById = (id: string) => {
     return categories.find(cat => cat.id === id);
+  };
+
+  const getDateFilterLabel = (filter: DateFilterOption): string => {
+    const labels: Record<DateFilterOption, string> = {
+      'all': 'All Time',
+      'today': 'Today',
+      'yesterday': 'Yesterday',
+      'this-week': 'This Week',
+      'this-month': 'This Month',
+      'last-month': 'Last Month',
+      'this-year': 'This Year'
+    };
+    return labels[filter];
   };
 
   if (transactions.length === 0) {
@@ -70,25 +101,47 @@ const TransactionList = ({
           />
         </div>
         
-        <div className="flex space-x-2 mt-2 md:mt-0">
+        <div className="flex flex-wrap gap-2 mt-2 md:mt-0">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Calendar className="h-4 w-4" />
+                <span>{getDateFilterLabel(dateFilter)}</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-48" align="end">
+              <DropdownMenuLabel>Filter by date</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuRadioGroup value={dateFilter} onValueChange={(value) => setDateFilter(value as DateFilterOption)}>
+                <DropdownMenuRadioItem value="all">All Time</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="today">Today</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="yesterday">Yesterday</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="this-week">This Week</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="this-month">This Month</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="last-month">Last Month</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="this-year">This Year</DropdownMenuRadioItem>
+              </DropdownMenuRadioGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button
             size="sm"
-            variant={filter === 'all' ? 'default' : 'outline'}
-            onClick={() => setFilter('all')}
+            variant={typeFilter === 'all' ? 'default' : 'outline'}
+            onClick={() => setTypeFilter('all')}
           >
             All
           </Button>
           <Button
             size="sm"
-            variant={filter === 'income' ? 'default' : 'outline'}
-            onClick={() => setFilter('income')}
+            variant={typeFilter === 'income' ? 'default' : 'outline'}
+            onClick={() => setTypeFilter('income')}
           >
             Income
           </Button>
           <Button
             size="sm"
-            variant={filter === 'expense' ? 'default' : 'outline'}
-            onClick={() => setFilter('expense')}
+            variant={typeFilter === 'expense' ? 'default' : 'outline'}
+            onClick={() => setTypeFilter('expense')}
           >
             Expenses
           </Button>
@@ -157,7 +210,7 @@ const TransactionList = ({
           })
         ) : (
           <div className="text-center py-8">
-            <p className="text-muted-foreground">No transactions match your search</p>
+            <p className="text-muted-foreground">No transactions match your filters</p>
           </div>
         )}
       </div>
