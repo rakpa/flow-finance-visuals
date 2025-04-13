@@ -1,6 +1,6 @@
 
 import React, { useMemo, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Transaction } from '@/types';
 import { format, parseISO, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isWithinInterval } from 'date-fns';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { DateFilterOption, getDateRangeFromFilter } from '@/lib/date-utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BalanceChartProps {
   transactions: Transaction[];
@@ -22,6 +23,7 @@ interface BalanceChartProps {
 
 const BalanceChart: React.FC<BalanceChartProps> = ({ transactions }) => {
   const [dateFilter, setDateFilter] = useState<DateFilterOption>('this-month');
+  const isMobile = useIsMobile();
 
   const chartData = useMemo(() => {
     if (!transactions.length) return [];
@@ -76,7 +78,7 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ transactions }) => {
         date: format(day, 'MMM dd'),
         income,
         expense,
-        balance: Math.max(0, runningBalance) // Ensure balance doesn't go negative for visual purposes
+        balance: runningBalance
       };
     });
   }, [transactions, dateFilter]);
@@ -128,21 +130,15 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ transactions }) => {
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart
+            <BarChart
               data={chartData}
               margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
             >
-              <defs>
-                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1} />
-                </linearGradient>
-              </defs>
               <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
               <XAxis 
                 dataKey="date" 
                 tick={{ fontSize: 10 }} 
-                tickFormatter={(value) => value.split(' ')[1]}
+                tickFormatter={(value) => isMobile ? value.split(' ')[1] : value}
               />
               <YAxis 
                 tick={{ fontSize: 10 }} 
@@ -153,15 +149,25 @@ const BalanceChart: React.FC<BalanceChartProps> = ({ transactions }) => {
                 labelFormatter={(label) => `Date: ${label}`}
               />
               <Legend />
-              <Area 
-                type="monotone" 
-                dataKey="balance" 
-                stroke="#3b82f6" 
-                fillOpacity={1} 
-                fill="url(#colorBalance)" 
-                name="Balance"
+              <Bar 
+                dataKey="income" 
+                name="Income" 
+                fill="#22c55e" 
+                radius={[4, 4, 0, 0]}
               />
-            </AreaChart>
+              <Bar 
+                dataKey="expense" 
+                name="Expense" 
+                fill="#ef4444" 
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar 
+                dataKey="balance" 
+                name="Balance" 
+                fill="#3b82f6" 
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
           </ResponsiveContainer>
         )}
       </div>
