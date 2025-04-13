@@ -14,6 +14,7 @@ import {
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { DateFilterOption, getDateRangeFromFilter, isDateInRange } from '@/lib/date-utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface ExpenseChartProps {
   transactions: Transaction[];
@@ -23,6 +24,7 @@ interface ExpenseChartProps {
 
 const ExpenseChart: React.FC<ExpenseChartProps> = ({ transactions, categories, type }) => {
   const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+  const isMobile = useIsMobile();
 
   const chartData = useMemo(() => {
     const dateRange = getDateRangeFromFilter(dateFilter);
@@ -121,7 +123,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ transactions, categories, t
         </DropdownMenu>
       </div>
 
-      <div className="h-[250px] w-full">
+      <div className={`${isMobile ? 'h-[200px]' : 'h-[250px]'} w-full`}>
         {!chartData.length ? (
           <div className="h-full w-full flex items-center justify-center">
             <p className="text-muted-foreground">No {type} data to display for the selected period</p>
@@ -136,10 +138,10 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ transactions, categories, t
                   nameKey="name"
                   cx="50%"
                   cy="50%"
-                  outerRadius={80}
-                  innerRadius={60}
+                  outerRadius={isMobile ? 60 : 80}
+                  innerRadius={isMobile ? 40 : 60}
                   paddingAngle={1}
-                  label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
+                  label={isMobile ? false : ({ name, value }) => `${name}: $${value.toFixed(0)}`}
                   labelLine={false}
                 >
                   {chartData.map((entry, index) => (

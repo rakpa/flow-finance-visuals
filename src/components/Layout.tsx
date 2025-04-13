@@ -1,8 +1,9 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Navbar from "./Navbar";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -10,6 +11,30 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
+  
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (sidebarOpen && isMobile) {
+        setSidebarOpen(false);
+      }
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, [sidebarOpen, isMobile]);
+
+  // Close sidebar when route changes or on component unmount
+  useEffect(() => {
+    return () => {
+      if (isMobile) {
+        setSidebarOpen(false);
+      }
+    };
+  }, [isMobile]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -19,13 +44,16 @@ const Layout = ({ children }: LayoutProps) => {
           "fixed inset-y-0 z-50 flex w-72 flex-col bg-card shadow-sm transition-transform lg:static lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         )}>
-          <div className="flex h-20 items-center border-b px-6">
+          <div className="flex h-16 items-center border-b px-4">
             <h2 className="text-xl font-bold">FlowFinance</h2>
           </div>
           <Navbar closeSidebar={() => setSidebarOpen(false)} />
-          <div className="mt-auto p-6 lg:hidden">
+          <div className="mt-auto p-4 lg:hidden">
             <button
-              onClick={() => setSidebarOpen(false)}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSidebarOpen(false);
+              }}
               className="flex items-center text-muted-foreground hover:text-foreground"
             >
               <X className="mr-2 h-4 w-4" />
@@ -37,10 +65,13 @@ const Layout = ({ children }: LayoutProps) => {
         {/* Content area */}
         <div className="flex flex-1 flex-col">
           {/* Mobile header */}
-          <header className="flex h-16 items-center border-b bg-card px-6 lg:hidden">
+          <header className="sticky top-0 z-40 flex h-14 items-center border-b bg-card px-4 lg:hidden">
             <button
-              onClick={() => setSidebarOpen(true)}
-              className="mr-4 text-muted-foreground hover:text-foreground lg:hidden"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSidebarOpen(true);
+              }}
+              className="mr-3 text-muted-foreground hover:text-foreground lg:hidden"
             >
               <Menu className="h-6 w-6" />
             </button>
@@ -48,7 +79,7 @@ const Layout = ({ children }: LayoutProps) => {
           </header>
 
           {/* Content */}
-          <main className="flex-1 overflow-auto p-4 md:p-6">
+          <main className="flex-1 overflow-auto p-3 md:p-6">
             {children}
           </main>
         </div>
