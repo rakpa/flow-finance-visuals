@@ -3,41 +3,22 @@ import { useState } from 'react';
 import Layout from '@/components/Layout';
 import CategoryForm from '@/components/CategoryForm';
 import CategoryList from '@/components/CategoryList';
-import { Transaction, Category } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
+import { Category } from '@/types';
+import { useTransactions } from '@/hooks/useTransactions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Categories = () => {
-  // Local storage for persisting data
-  const [financeData, setFinanceData] = useLocalStorage<{
-    transactions: Transaction[];
-    categories: Category[];
-  }>('finance-tracker-data', {
-    transactions: [],
-    categories: [],
-  });
-
-  // Initialize state from localStorage
-  const [categories, setCategories] = useState<Category[]>(financeData.categories);
-  const transactions = financeData.transactions;
+  const {
+    transactions,
+    categories,
+    isLoading,
+    addCategory,
+    deleteCategory
+  } = useTransactions();
 
   // Handle adding a new category
   const handleAddCategory = (newCategory: Omit<Category, 'id'>) => {
-    const category: Category = {
-      id: uuidv4(),
-      ...newCategory,
-    };
-    const updatedCategories = [...categories, category];
-    setCategories(updatedCategories);
-    
-    // Update localStorage
-    setFinanceData({
-      ...financeData,
-      categories: updatedCategories,
-    });
-    
-    toast.success('Category added');
+    addCategory(newCategory);
   };
 
   // Handle deleting a category
@@ -46,20 +27,11 @@ const Categories = () => {
     const isInUse = transactions.some(transaction => transaction.categoryId === id);
     
     if (isInUse) {
-      toast.error('Cannot delete category in use');
-      return;
+      return false; // Let TransactionList handle the error toast
     }
     
-    const updatedCategories = categories.filter(category => category.id !== id);
-    setCategories(updatedCategories);
-    
-    // Update localStorage
-    setFinanceData({
-      ...financeData,
-      categories: updatedCategories,
-    });
-    
-    toast.success('Category deleted');
+    deleteCategory(id);
+    return true;
   };
 
   return (
@@ -68,16 +40,27 @@ const Categories = () => {
         <h2 className="text-2xl font-bold mb-6">Categories</h2>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <CategoryForm onAddCategory={handleAddCategory} />
+            <CategoryForm 
+              onAddCategory={handleAddCategory}
+              isLoading={isLoading}
+            />
           </div>
           <div className="lg:col-span-2">
             <div className="bg-card p-6 rounded-lg shadow-sm h-full">
               <h3 className="text-xl font-bold mb-4">Category List</h3>
-              <CategoryList 
-                categories={categories} 
-                onDeleteCategory={handleDeleteCategory}
-                transactions={transactions}
-              />
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {[...Array(6)].map((_, i) => (
+                    <Skeleton key={i} className="w-full h-20" />
+                  ))}
+                </div>
+              ) : (
+                <CategoryList 
+                  categories={categories} 
+                  onDeleteCategory={handleDeleteCategory}
+                  transactions={transactions}
+                />
+              )}
             </div>
           </div>
         </div>

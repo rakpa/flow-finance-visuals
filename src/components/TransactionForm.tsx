@@ -14,13 +14,15 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Category, Transaction, TransactionType } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface TransactionFormProps {
   categories: Category[];
   onAddTransaction: (transaction: Omit<Transaction, 'id'>) => void;
+  isLoading?: boolean;
 }
 
-const TransactionForm = ({ categories, onAddTransaction }: TransactionFormProps) => {
+const TransactionForm = ({ categories, onAddTransaction, isLoading = false }: TransactionFormProps) => {
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [categoryId, setCategoryId] = useState('');
@@ -68,7 +70,7 @@ const TransactionForm = ({ categories, onAddTransaction }: TransactionFormProps)
       description,
       categoryId,
       type,
-      date,
+      date: new Date(date).toISOString(),
     });
 
     // Reset form
@@ -76,9 +78,25 @@ const TransactionForm = ({ categories, onAddTransaction }: TransactionFormProps)
     setDescription('');
     setCategoryId('');
     setDate(new Date().toISOString().slice(0, 10));
-    
-    toast.success(`${type === 'income' ? 'Income' : 'Expense'} added successfully`);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 bg-card p-6 rounded-lg shadow-sm">
+        <Skeleton className="h-8 w-3/4 mb-6" />
+        <div className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 bg-card p-6 rounded-lg shadow-sm">

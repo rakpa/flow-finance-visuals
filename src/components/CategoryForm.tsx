@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Category, TransactionType } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Common emoji categories
 const commonEmojis = [
@@ -53,9 +54,10 @@ const colorOptions = [
 
 interface CategoryFormProps {
   onAddCategory: (category: Omit<Category, 'id'>) => void;
+  isLoading?: boolean;
 }
 
-const CategoryForm = ({ onAddCategory }: CategoryFormProps) => {
+const CategoryForm = ({ onAddCategory, isLoading = false }: CategoryFormProps) => {
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('');
   const [color, setColor] = useState('#3b82f6');
@@ -88,9 +90,24 @@ const CategoryForm = ({ onAddCategory }: CategoryFormProps) => {
     setIcon('');
     setColor('#3b82f6');
     setType('expense');
-    
-    toast.success('Category added successfully');
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-4 bg-card p-6 rounded-lg shadow-sm">
+        <Skeleton className="h-8 w-3/4 mb-6" />
+        <div className="space-y-4">
+          <Skeleton className="h-20 w-full" />
+          <Skeleton className="h-20 w-full" />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Skeleton className="h-20 w-full" />
+            <Skeleton className="h-20 w-full" />
+          </div>
+          <Skeleton className="h-10 w-full" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 bg-card p-6 rounded-lg shadow-sm">

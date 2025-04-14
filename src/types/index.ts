@@ -10,6 +10,7 @@ export interface Transaction {
   date: string;
   categoryId: string;
   type: TransactionType;
+  created_at?: string;
 }
 
 export interface Category {
@@ -18,6 +19,7 @@ export interface Category {
   icon: string;
   color: string;
   type: TransactionType | 'both';
+  created_at?: string;
 }
 
 export interface FinanceData {
@@ -34,4 +36,22 @@ export interface ChartData {
 export interface IconOption {
   value: string;
   label: React.ReactNode;
+}
+
+// Database types
+export interface Database {
+  public: {
+    Tables: {
+      transactions: {
+        Row: Transaction;
+        Insert: Omit<Transaction, 'id' | 'created_at'>;
+        Update: Partial<Omit<Transaction, 'id' | 'created_at'>>;
+      };
+      categories: {
+        Row: Category;
+        Insert: Omit<Category, 'id' | 'created_at'>;
+        Update: Partial<Omit<Category, 'id' | 'created_at'>>;
+      };
+    };
+  };
 }

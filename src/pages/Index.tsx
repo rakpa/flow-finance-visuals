@@ -2,44 +2,43 @@
 import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import Dashboard from '@/components/Dashboard';
-import { Transaction, Category, FinanceData } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { toast } from 'sonner';
+import { useTransactions } from '@/hooks/useTransactions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Index = () => {
-  // Local storage for persisting data
-  const [financeData, setFinanceData] = useLocalStorage<FinanceData>('finance-tracker-data', {
-    transactions: [],
-    categories: [],
-  });
-
-  // Initialize state from localStorage
-  const [transactions, setTransactions] = useState<Transaction[]>(financeData.transactions);
-  const [categories, setCategories] = useState<Category[]>(financeData.categories);
-
-  // Update localStorage when state changes
-  useEffect(() => {
-    setFinanceData({
-      transactions,
-      categories,
-    });
-  }, [transactions, categories, setFinanceData]);
+  const {
+    transactions,
+    categories,
+    isLoading,
+    deleteTransaction
+  } = useTransactions();
 
   // Handle deleting a transaction
   const handleDeleteTransaction = (id: string) => {
-    setTransactions(prev => prev.filter(transaction => transaction.id !== id));
-    toast.success('Transaction deleted');
+    deleteTransaction(id);
   };
 
   return (
     <Layout>
       <section id="dashboard" className="mb-10">
         <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-        <Dashboard 
-          transactions={transactions} 
-          categories={categories}
-          onDeleteTransaction={handleDeleteTransaction}
-        />
+        {isLoading ? (
+          <div className="space-y-8">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="w-full h-32" />
+              ))}
+            </div>
+            <Skeleton className="w-full h-80" />
+            <Skeleton className="w-full h-96" />
+          </div>
+        ) : (
+          <Dashboard 
+            transactions={transactions} 
+            categories={categories}
+            onDeleteTransaction={handleDeleteTransaction}
+          />
+        )}
       </section>
     </Layout>
   );

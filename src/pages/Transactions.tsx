@@ -3,55 +3,27 @@ import { useState } from 'react';
 import Layout from '@/components/Layout';
 import TransactionForm from '@/components/TransactionForm';
 import TransactionList from '@/components/TransactionList';
-import { Transaction, Category } from '@/types';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { v4 as uuidv4 } from 'uuid';
-import { toast } from 'sonner';
+import { Transaction } from '@/types';
+import { useTransactions } from '@/hooks/useTransactions';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const Transactions = () => {
-  // Local storage for persisting data
-  const [financeData, setFinanceData] = useLocalStorage<{
-    transactions: Transaction[];
-    categories: Category[];
-  }>('finance-tracker-data', {
-    transactions: [],
-    categories: [],
-  });
-
-  // Initialize state from localStorage
-  const [transactions, setTransactions] = useState<Transaction[]>(financeData.transactions);
-  const categories = financeData.categories;
+  const {
+    transactions,
+    categories,
+    isLoading,
+    addTransaction,
+    deleteTransaction
+  } = useTransactions();
 
   // Handle adding a new transaction
   const handleAddTransaction = (newTransaction: Omit<Transaction, 'id'>) => {
-    const transaction: Transaction = {
-      id: uuidv4(),
-      ...newTransaction,
-    };
-    const updatedTransactions = [transaction, ...transactions];
-    setTransactions(updatedTransactions);
-    
-    // Update localStorage
-    setFinanceData({
-      ...financeData,
-      transactions: updatedTransactions,
-    });
-    
-    toast.success('Transaction added');
+    addTransaction(newTransaction);
   };
 
   // Handle deleting a transaction
   const handleDeleteTransaction = (id: string) => {
-    const updatedTransactions = transactions.filter(transaction => transaction.id !== id);
-    setTransactions(updatedTransactions);
-    
-    // Update localStorage
-    setFinanceData({
-      ...financeData,
-      transactions: updatedTransactions,
-    });
-    
-    toast.success('Transaction deleted');
+    deleteTransaction(id);
   };
 
   return (
@@ -63,16 +35,25 @@ const Transactions = () => {
             <TransactionForm 
               categories={categories} 
               onAddTransaction={handleAddTransaction} 
+              isLoading={isLoading}
             />
           </div>
           <div className="lg:col-span-2">
             <div className="bg-card p-6 rounded-lg shadow-sm h-full">
               <h3 className="text-xl font-bold mb-4">Transaction History</h3>
-              <TransactionList 
-                transactions={transactions} 
-                categories={categories}
-                onDeleteTransaction={handleDeleteTransaction}
-              />
+              {isLoading ? (
+                <div className="space-y-4">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="w-full h-20" />
+                  ))}
+                </div>
+              ) : (
+                <TransactionList 
+                  transactions={transactions} 
+                  categories={categories}
+                  onDeleteTransaction={handleDeleteTransaction}
+                />
+              )}
             </div>
           </div>
         </div>
