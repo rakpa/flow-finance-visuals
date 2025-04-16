@@ -29,7 +29,16 @@ export function useTransactions() {
         throw error;
       }
 
-      return data as Transaction[];
+      // Transform data to match our Transaction interface
+      return data.map(item => ({
+        id: item.id,
+        amount: item.amount,
+        description: item.description,
+        date: item.date,
+        categoryId: item.category_id,
+        type: item.type,
+        created_at: item.created_at
+      })) as Transaction[];
     }
   });
 
@@ -60,9 +69,18 @@ export function useTransactions() {
   // Add transaction mutation
   const addTransaction = useMutation({
     mutationFn: async (newTransaction: Omit<Transaction, 'id' | 'created_at'>) => {
+      // Transform to match database column names
+      const dbTransaction = {
+        amount: newTransaction.amount,
+        description: newTransaction.description,
+        category_id: newTransaction.categoryId,
+        type: newTransaction.type,
+        date: newTransaction.date,
+      };
+
       const { data, error } = await supabase
         .from('transactions')
-        .insert(newTransaction)
+        .insert(dbTransaction)
         .select()
         .single();
 
@@ -72,7 +90,16 @@ export function useTransactions() {
         throw error;
       }
 
-      return data as Transaction;
+      // Transform back to our interface
+      return {
+        id: data.id,
+        amount: data.amount,
+        description: data.description,
+        date: data.date,
+        categoryId: data.category_id,
+        type: data.type,
+        created_at: data.created_at
+      } as Transaction;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['transactions'] });

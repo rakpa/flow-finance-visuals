@@ -43,12 +43,27 @@ export interface Database {
   public: {
     Tables: {
       transactions: {
-        Row: Transaction;
-        Insert: Omit<Transaction, 'id' | 'created_at'>;
-        Update: Partial<Omit<Transaction, 'id' | 'created_at'>>;
+        Row: {
+          id: string;
+          amount: number;
+          description: string;
+          date: string;
+          category_id: string;
+          type: TransactionType;
+          created_at?: string;
+        };
+        Insert: Omit<Transaction, 'id' | 'created_at' | 'categoryId'> & { category_id: string };
+        Update: Partial<Omit<Transaction, 'id' | 'created_at' | 'categoryId'> & { category_id: string }>;
       };
       categories: {
-        Row: Category;
+        Row: {
+          id: string;
+          name: string;
+          icon: string;
+          color: string;
+          type: TransactionType | 'both';
+          created_at?: string;
+        };
         Insert: Omit<Category, 'id' | 'created_at'>;
         Update: Partial<Omit<Category, 'id' | 'created_at'>>;
       };
