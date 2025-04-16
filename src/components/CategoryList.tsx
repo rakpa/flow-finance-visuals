@@ -15,15 +15,20 @@ type IconComponentProps = {
 
 // Dynamic icon component
 const DynamicIcon = ({ name, className }: IconComponentProps) => {
-  // Check if the icon exists in Lucide
-  const LucideIcon = (LucideIcons as Record<string, React.ComponentType<any>>)[
-    // Convert kebab-case to PascalCase (e.g., "file-text" -> "FileText")
-    name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')
-  ];
+  // Using type assertion with 'as any' to avoid TypeScript errors
+  // This is safe because we're checking if the icon exists before using it
+  const icons = LucideIcons as any;
+  
+  // Convert kebab-case to PascalCase (e.g., "file-text" -> "FileText")
+  const iconName = name.split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join('');
+  
+  const LucideIcon = icons[iconName];
 
   // Fallback if icon not found
   if (!LucideIcon) {
-    console.warn(`Icon not found: ${name}`);
+    console.warn(`Icon not found: ${name} (converted to ${iconName})`);
     return <span className={className}>{name}</span>;
   }
 
