@@ -5,6 +5,30 @@ import { Category } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import * as LucideIcons from 'lucide-react';
+
+// Type for dynamic icon component
+type IconComponentProps = {
+  name: string;
+  className?: string;
+};
+
+// Dynamic icon component
+const DynamicIcon = ({ name, className }: IconComponentProps) => {
+  // Check if the icon exists in Lucide
+  const LucideIcon = (LucideIcons as Record<string, React.ComponentType<any>>)[
+    // Convert kebab-case to PascalCase (e.g., "file-text" -> "FileText")
+    name.split('-').map(part => part.charAt(0).toUpperCase() + part.slice(1)).join('')
+  ];
+
+  // Fallback if icon not found
+  if (!LucideIcon) {
+    console.warn(`Icon not found: ${name}`);
+    return <span className={className}>{name}</span>;
+  }
+
+  return <LucideIcon className={className} />;
+};
 
 interface CategoryListProps {
   categories: Category[];
@@ -114,9 +138,7 @@ const CategoryList = ({
                       color: category.color 
                     }}
                   >
-                    <span className="text-xl" role="img" aria-label={category.name}>
-                      {category.icon}
-                    </span>
+                    <DynamicIcon name={category.icon} className="h-5 w-5" />
                   </div>
                   <div>
                     <h4 className="font-medium">{category.name}</h4>
