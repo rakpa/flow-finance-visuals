@@ -1,4 +1,3 @@
-
 import { useMemo, useState } from 'react';
 import { ArrowUpRight, ArrowDownRight, Search, Calendar, Trash2, FilterIcon } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
@@ -31,6 +30,9 @@ const TransactionList = ({
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
   const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
+  
+  console.log('Categories in TransactionList:', categories);
+  console.log('Transactions in TransactionList:', transactions);
 
   const filteredTransactions = useMemo(() => {
     const dateRange = getDateRangeFromFilter(dateFilter);
@@ -64,7 +66,9 @@ const TransactionList = ({
   }, [transactions, categories, searchTerm, typeFilter, dateFilter]);
 
   const getCategoryById = (id: string) => {
-    return categories.find(cat => cat.id === id);
+    const category = categories.find(cat => cat.id === id);
+    console.log('Looking for category with ID:', id, 'Found:', category);
+    return category;
   };
 
   const getDateFilterLabel = (filter: DateFilterOption): string => {

@@ -1,4 +1,3 @@
-
 import React, { useMemo, useState } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Transaction, Category, ChartData } from '@/types';
@@ -25,6 +24,9 @@ interface ExpenseChartProps {
 const ExpenseChart: React.FC<ExpenseChartProps> = ({ transactions, categories, type }) => {
   const [dateFilter, setDateFilter] = useState<DateFilterOption>('all');
   const isMobile = useIsMobile();
+  
+  console.log('Categories in ExpenseChart:', categories);
+  console.log('Transactions in ExpenseChart:', transactions);
 
   const chartData = useMemo(() => {
     const dateRange = getDateRangeFromFilter(dateFilter);
@@ -47,6 +49,7 @@ const ExpenseChart: React.FC<ExpenseChartProps> = ({ transactions, categories, t
     // Format for chart with category details
     return Object.entries(categoryTotals).map(([categoryId, value]) => {
       const category = categories.find(c => c.id === categoryId);
+      console.log('Found category:', category, 'for ID:', categoryId);
       return {
         name: category ? category.name : 'Unknown',
         value,

@@ -62,7 +62,15 @@ export function useTransactions() {
         throw error;
       }
 
-      return data as Category[];
+      // Make sure we properly map the database rows to our Category interface
+      return data.map(category => ({
+        id: category.id,
+        name: category.name,
+        icon: category.icon,
+        color: category.color,
+        type: category.type,
+        created_at: category.created_at
+      })) as Category[];
     }
   });
 
@@ -144,7 +152,15 @@ export function useTransactions() {
         throw error;
       }
 
-      return data as Category;
+      // Ensure we transform the data to match our Category interface
+      return {
+        id: data.id,
+        name: data.name,
+        icon: data.icon,
+        color: data.color,
+        type: data.type,
+        created_at: data.created_at
+      } as Category;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['categories'] });

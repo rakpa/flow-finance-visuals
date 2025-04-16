@@ -19,6 +19,8 @@ const CategoryList = ({
 }: CategoryListProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filter, setFilter] = useState<'all' | 'income' | 'expense' | 'both'>('all');
+  
+  console.log('Categories in CategoryList:', categories);
 
   const filteredCategories = useMemo(() => {
     return categories
