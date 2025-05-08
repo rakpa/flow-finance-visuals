@@ -37,10 +37,10 @@ const Layout = ({ children }: LayoutProps) => {
   }, [isMobile]);
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar for larger screens */}
       <aside className={cn(
-        "fixed inset-y-0 z-50 flex w-72 flex-col bg-blue-600 text-white shadow-sm transition-transform h-full lg:static lg:translate-x-0",
+        "fixed inset-y-0 z-50 flex w-72 flex-col bg-blue-600 text-white shadow-sm transition-transform h-screen lg:h-auto lg:static lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         <div className="flex h-16 items-center border-b border-blue-700 px-4">
@@ -64,7 +64,7 @@ const Layout = ({ children }: LayoutProps) => {
       </aside>
 
       {/* Content area */}
-      <div className="flex flex-1 flex-col ml-0 lg:ml-72">
+      <div className="flex-1 flex flex-col w-full">
         {/* Mobile header */}
         <header className="sticky top-0 z-40 flex h-14 items-center border-b bg-card px-4 lg:hidden">
           <button
@@ -80,7 +80,7 @@ const Layout = ({ children }: LayoutProps) => {
         </header>
 
         {/* Content */}
-        <main className="flex-1 overflow-auto p-3 md:p-6">
+        <main className="flex-1 overflow-auto p-3 md:p-6 w-full">
           {children}
         </main>
       </div>

@@ -36,6 +36,33 @@ export type Database = {
         }
         Relationships: []
       }
+      currency_entries: {
+        Row: {
+          created_at: string
+          date: string
+          description: string
+          id: string
+          inr_amount: number
+          pln_amount: number
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          description: string
+          id?: string
+          inr_amount: number
+          pln_amount: number
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          description?: string
+          id?: string
+          inr_amount?: number
+          pln_amount?: number
+        }
+        Relationships: []
+      }
       transactions: {
         Row: {
           amount: number
@@ -79,7 +106,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_currency_entries_table: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
