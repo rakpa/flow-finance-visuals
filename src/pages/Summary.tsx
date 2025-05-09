@@ -396,12 +396,12 @@ export default function Summary() {
 
         <Table>
           <TableHeader>
-            <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead>Amount (PLN)</TableHead>
-              <TableHead>Amount (INR)</TableHead>
-              <TableHead>Actions</TableHead>
+            <TableRow className="bg-orange-500">
+              <TableHead className="text-white">Date</TableHead>
+              <TableHead className="text-white">Description</TableHead>
+              <TableHead className="text-white">Amount (PLN)</TableHead>
+              <TableHead className="text-white">Amount (INR)</TableHead>
+              <TableHead className="text-white">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
