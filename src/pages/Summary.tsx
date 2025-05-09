@@ -288,7 +288,7 @@ export default function Summary() {
     <Layout>
       <div className="bg-background p-6 rounded-lg space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Currency Summary</h1>
+          <h1 className="text-2xl font-bold text-orange-500">Currency Summary</h1>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
