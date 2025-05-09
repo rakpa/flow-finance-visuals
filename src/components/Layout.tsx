@@ -40,11 +40,11 @@ const Layout = ({ children }: LayoutProps) => {
     <div className="min-h-screen flex w-full bg-background">
       {/* Sidebar for larger screens */}
       <aside className={cn(
-        "fixed inset-y-0 z-50 flex w-72 flex-col bg-background text-foreground shadow-sm transition-transform h-screen lg:h-auto lg:static lg:translate-x-0",
+        "fixed inset-y-0 z-50 flex w-72 flex-col bg-blue-600 text-white shadow-sm transition-transform h-screen lg:h-auto lg:static lg:translate-x-0",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
-        <div className="flex h-16 items-center border-b px-4">
-          <h2 className="text-xl font-bold">FlowFinance</h2>
+        <div className="flex h-16 items-center border-b border-blue-700 px-4">
+          <h2 className="text-xl font-bold text-white">FlowFinance</h2>
         </div>
         <div className="flex-1 overflow-auto flex flex-col">
           <Navbar closeSidebar={() => setSidebarOpen(false)} />
@@ -55,7 +55,7 @@ const Layout = ({ children }: LayoutProps) => {
               e.stopPropagation();
               setSidebarOpen(false);
             }}
-            className="flex items-center text-foreground/70 hover:text-foreground"
+            className="flex items-center text-white/70 hover:text-white"
           >
             <X className="mr-2 h-4 w-4" />
             Close Sidebar
