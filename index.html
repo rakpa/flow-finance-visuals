@@ -36,6 +36,7 @@
             })
             .catch(error => {
               console.log('ServiceWorker registration failed: ', error);
+              // Continue app execution even if service worker fails
             });
         });
       }
