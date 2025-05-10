@@ -3,7 +3,7 @@
   "name": "Flow Finance",
   "short_name": "FlowFinance",
   "description": "A financial tracking and visualization application",
-  "start_url": "/",
+  "start_url": "/flow-finance-visuals/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3b82f6",
